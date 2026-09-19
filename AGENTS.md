@@ -1,55 +1,51 @@
 # AGENTS.md - axfr4hyperscalerdns Guide
 
-## Purpose and Instruction Scope
+## Scope & Context
+- These instructions apply throughout the repository. More specific `AGENTS.md` files take precedence.
+- **Java 21**: Use modern features (records, pattern matching, switch expressions) where they improve clarity. Prefer established repository patterns over speculative abstractions.
+- Before modifying code: inspect implementation, tests, documentation, and existing patterns. Make the smallest change that solves the problem.
+- For lifecycle/concurrency: use openHAB schedulers, ensure proper cleanup in `dispose()`, make repetitive paths idempotent, avoid unnecessary repeated work, and never hold locks while calling framework/external code.
 
-These instructions apply throughout the repository unless a more specific `AGENTS.md` applies to the files being changed.
+## Error Handling & External Data
+- Validate external input; rely on framework guarantees where appropriate. Use structured exceptions rather than human-readable messages for control flow. Preserve original cause when wrapping. Don't cache failures as success. Invalidate cached data on auth/config/connection/lifecycle changes. Close resources reliably (try-with-resources). Distinguish expected failures from defects.
 
-Before modifying or reviewing a file, follow the nearest applicable `AGENTS.md` in its directory hierarchy.
-More specific instructions take precedence over conflicting broader instructions.
+## Security & Nullability
+- **Security**: Treat credentials/tokens/keys as sensitive. Never expose in logs or exceptions. Use established authentication/security APIs. Validate external input crossing trust boundaries.
+- **Nullability**: Annotate with `@NonNullByDefault`; use `@Nullable` intentionally. Fix rather than suppress null warnings.
 
-Before modifying code, inspect the surrounding implementation, existing tests, applicable documentation, and established repository patterns.
-Follow those patterns unless there is a concrete reason to deviate.
+## Logging
+- Use parameterized SLF4J logging. Reserve `warn/error` for unexpected conditions. Update Thing status for expected failures.
 
-## Repository Overview
+## Documentation & Code Comments
+- **Javadoc**: Use where appropriate; keep accurate when behavior changes.
+- **Author tags**: Add for new files/substantial contributions using real human names. Preserve existing tags.
+- **Code comments**: Explain non-obvious intent/constraints. Remove obvious comments that restate code.
 
-This repository contains the axfr4hyperscalerdns project.
+## Formatting & Code Style
+- Run `mvn spotless:apply` for formatting. Keep POM sections sorted. Use provided formatter configs.
 
-Before introducing new APIs or abstractions, check whether this repository already provides an appropriate solution.
+## Testing & Validation
+- Cover changed behavior with relevant tests (boundary, failure, malformed input, recovery).
+- Integration tests in `itests/` use bndrun configurations. For async changes, wait for activation to complete before modifying providers.
+- Bound blocking operations with timeouts to prevent hangs.
 
-### References
+**Commands**:
+```bash
+mvn spotless:apply           # Format
+mvn clean install             # Full build
+mvn clean install -DwithResolver  # With dependencies
+```
 
-Use these resources for deeper context where relevant.
-When a task is governed by one of these documents, inspect the relevant document rather than relying on remembered or inferred repository conventions.
+## Validation & Pull Requests
+- Validate narrowly for your change (formatting, tests, module-specific builds). Run full build when warranted.
+- Follow `.github/PULL_REQUEST_TEMPLATE.md`. Convert HTML-commented template sections to visible Markdown. Verify PR matches diff/scope after follow-up changes.
 
-- Repository organization and build commands: `README.md`.
-- Coding guidelines: src/resources/axfr4hyperscalerdns_codestyles.xml
-- Import order: src/resources/axfr4hyperscalerdns.importorder
-- XML file formatting: axfr4hyperscalerdns_wst_xml_files.prefs
 
-## Development Standards
-
-### Java Version
-
-- **Target:** Java 21.
-- Use Java 21 language features where they improve clarity, correctness, or maintainability.
-- Prefer established repository patterns, but do not avoid modern Java features solely because older code uses more traditional constructs.
-- Use features such as records, pattern matching, switch expressions, and text blocks when they are a natural fit.
-- Avoid preview features, experimental APIs, and unnecessarily complex constructs when a simpler implementation is clearer.
-
-### Scope, Design, and API Surface
-
-- Before implementing a change, establish the intended behavior and acceptance criteria from the request, relevant issue or pull-request discussion, documentation, tests, and existing behavior; do not infer requirements from the current implementation alone.
-- Make the smallest coherent change that solves the requested problem and avoid unrelated refactoring or cleanup.
-- Prefer straightforward implementations over speculative abstractions, unnecessary indirection, or helper types that do not clarify a real concept or provide a concrete benefit.
-- When behavior depends on an external API, protocol, library, or file format, verify relevant assumptions against authoritative upstream documentation, specifications, or source code rather than relying on memory or inference.
-- Before changing existing behavior, API contracts, identifiers, serialization, or configuration semantics, inspect affected callers and consumers and preserve established compatibility and invariants unless the change intentionally modifies them.
-- Use the narrowest visibility that satisfies the design and avoid expanding public API surface as a side effect of an implementation change.
-- Do not make implementation helpers `public` unless they are intentionally part of an API or are required outside the class or package.
-- Prefer supported, typed APIs over reflection or other implementation-dependent mechanisms.
-- Use reflection only when there is no practical supported API for the required behavior; keep reflective access narrowly scoped, document the non-obvious reason, and consider compatibility, class-loading, module, and OSGi implications.
-
-### Lifecycle, Concurrency, and State
-
+## Lifecycle, Concurrency, and State
+- Use openHAB-provided schedulers rather than creating threads. Release resources in `dispose()`.
+- Make repetitive paths idempotent (registrations, listeners, channels). Handle lifecycle transitions gracefully.
+- Don't hold locks while calling framework/external code. Validate before mutable operations.
+- Consider performance implications of polling/discovery/retry loops. Close connections reliably.
 When code performs asynchronous, scheduled, or lifecycle-sensitive work:
 
 - Use openHAB-provided schedulers rather than creating threads where possible.
@@ -171,22 +167,6 @@ When adding or changing Maven dependencies:
 - Reference documentation: <https://bnd.bndtools.org/chapters/825-instructions-ref.html>
 - When Maven dependencies change, check whether integration-test run bundles also need updating.
 - Use the resolver when appropriate rather than manually maintaining stale dependency lists.
-
-### Thing, Channel, and Configuration Metadata
-
-When changing binding metadata:
-
-- Keep Thing, Channel, configuration, and README documentation consistent with the implemented behavior.
-- Use quantity types and Units of Measurement for values that represent measurable quantities where appropriate.
-- Keep configuration types, units, defaults, ranges, and contexts consistent with their runtime representation; preserve established defaults or base changed defaults on a concrete requirement or documented rationale.
-- Use appropriate semantic tags where applicable.
-- Handle `RefreshType.REFRESH` explicitly for channels that support refresh rather than treating it as a normal device command.
-- Preserve stable identifiers and representation properties used for discovered Things.
-
-### CODEOWNERS File
-
-- Keep entries at the appropriate sorted location using the format `path/to/binding @github-username`.
-- Binding creation scripts update `CODEOWNERS` automatically; avoid redundant manual changes when using those scripts.
 
 ## Testing and Validation
 

@@ -24,4 +24,13 @@ The application is:
 
 # Not expected to be supported for now
 * DNS over HTTPS (DoH) isn't necessary as users of this DNS server shouldn't be end users
-* DNS over TLS (DoT) isn't supported yet (as Windows DNS Server does not support it)5533
+* DNS over TLS (DoT) isn't supported yet (as Windows DNS Server does not support it)
+
+# Step 1 of the development
+
+* Support as Secondary DNS replicating data to Azure DNS.
+* Supports multiple domains
+* Supports replication of subdomains or topdomains
+    * For instance the DNS domain may receive AXFR/IXFR for domain example.com and the Azure DNS domain could be ad.example.com (hence only subdomains to ad.example.com get replicated to Azure)
+    * Fpr instance the DNS domain may receive AXFR/IXFR for domain ad.example.com and the Azure DNS domain could be example.com
+* Support for multiple Azure subscriptions / Entra ID Application Secrets, with the secrets stored using java compliant keystores 
