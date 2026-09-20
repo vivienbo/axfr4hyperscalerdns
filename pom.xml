@@ -19,15 +19,15 @@
         
         <!-- Runtime dependencies -->
         <dnsjava.version>3.6.1</dnsjava.version>
+        <slf4j.version>2.0.9</slf4j.version>
 
-        <!-- Testing dependencies -->
         <junit.jupiter.version>5.10.1</junit.jupiter.version>
         <assertj.version>3.24.2</assertj.version>
 
         <!-- Build dependencies -->
         <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
-        <jacoco.version>0.8.11</jacoco.version>
+        <jacoco.version>0.8.15</jacoco.version>
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
         <maven.javadoc.plugin.version>3.6.2</maven.javadoc.plugin.version>
         <maven.enforcer.plugin.version>3.4.1</maven.enforcer.plugin.version>
@@ -38,6 +38,12 @@
         <!-- Formatting guidelines -->
         <spotless.plugin.version>2.41.0</spotless.plugin.version>
         <google-java-format.version>1.18.1</google-java-format.version>
+
+        <!-- JaCoCo thresholds. Increase gradually as you add tests. -->
+        <jacoco.unit-tests.limit.instruction-ratio>0%</jacoco.unit-tests.limit.instruction-ratio>
+        <jacoco.unit-tests.limit.branch-ratio>0%</jacoco.unit-tests.limit.branch-ratio>
+        <jacoco.unit-tests.limit.class-complexity>20</jacoco.unit-tests.limit.class-complexity>
+        <jacoco.unit-tests.limit.method-complexity>5</jacoco.unit-tests.limit.method-complexity>
     </properties>
 
     <dependencies>
@@ -47,8 +53,19 @@
             <artifactId>dnsjava</artifactId>
             <version>${dnsjava.version}</version>
         </dependency>
+        <!-- Logging dependencies -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
         
-        <!-- Testing dependencies -->
+        
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -105,34 +122,70 @@
                 <version>${jacoco.version}</version>
                 <executions>
                     <execution>
-                        <id>default-prepare-agent</id>
+                        <id>pre-unit-test</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
                     <execution>
-                        <id>default-report</id>
+                        <id>post-unit-test</id>
                         <phase>test</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
                     </execution>
                     <execution>
-                        <id>default-jaccoback-merge</id>
+                        <id>report</id>
                         <phase>test</phase>
                         <goals>
-                            <goal>merge</goal>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>check-unit-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>check</goal>
                         </goals>
                         <configuration>
-                            <fileSets>
-                                <fileSet>
-                                    <directory>${project.build.directory}</directory>
-                                    <includes>
-                                        <include>jacoco.exec</include>
-                                    </includes>
-                                </fileSet>
-                            </fileSets>
-                            <destFile>${project.reporting.outputDirectory}/jacoco/all-tests.exec</destFile>
+                            <dataFile>${project.build.directory}/jacoco.exec</dataFile>
+                            <rules>
+                                <rule>
+                                <element>BUNDLE</element>
+                                <limits>
+                                    <limit>
+                                    <counter>INSTRUCTION</counter>
+                                    <value>COVEREDRATIO</value>
+                                    <minimum>${jacoco.unit-tests.limit.instruction-ratio}</minimum>
+                                    </limit>
+                                    <limit>
+                                    <counter>BRANCH</counter>
+                                    <value>COVEREDRATIO</value>
+                                    <minimum>${jacoco.unit-tests.limit.branch-ratio}</minimum>
+                                    </limit>
+                                </limits>
+                                </rule>
+                                <rule>
+                                <element>CLASS</element>
+                                <limits>
+                                    <limit>
+                                    <counter>COMPLEXITY</counter>
+                                    <value>TOTALCOUNT</value>
+                                    <maximum>${jacoco.unit-tests.limit.class-complexity}</maximum>
+                                    </limit>
+                                </limits>
+                                </rule>
+                                <rule>
+                                <element>METHOD</element>
+                                <limits>
+                                    <limit>
+                                    <counter>COMPLEXITY</counter>
+                                    <value>TOTALCOUNT</value>
+                                    <maximum>${jacoco.unit-tests.limit.method-complexity}</maximum>
+                                    </limit>
+                                </limits>
+                                </rule>
+                            </rules>
                         </configuration>
                     </execution>
                 </executions>
@@ -254,7 +307,7 @@
             </plugin>
 
             <!-- GPG Plugin for signing artifacts -->
-            <plugin>
+            <!--plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>${maven.gpg.plugin.version}</version>
@@ -267,7 +320,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin-->
         </plugins>
 
         <resources>
