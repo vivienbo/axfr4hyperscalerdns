@@ -1,2 +1,21 @@
+<<<<<<< HEAD
 target/*
 .vscode/*
+=======
+# Maven Build Directory
+target/
+
+# Test reports and coverage data
+target/surefire-reports/*
+target/test-classes/
+target/site/jacoco/*
+
+# IDE specific files
+.vscode/
+
+# Git config (if not in repo)
+.gitignore
+
+# Windows OS generated files for Java development
+.DS_Store
+>>>>>>> 05855dc (Configure JUnit testing with JaCoCo coverage and GitHub Actions CI/CD)
